@@ -10,18 +10,18 @@ import {
 } from 'echarts/components';
 import { ReactElement, useMemo } from 'react';
 
-type EarningsChartProps = {
+type FinancialChartProps = {
   chartRef: React.MutableRefObject<EChartsReactCore | null>;
   sx?: SxProps;
 };
 
-type EarningsChartOptions = echarts.ComposeOption<
+type FinancialChartOptions = echarts.ComposeOption<
   GaugeSeriesOption | LegendComponentOption | TooltipComponentOption | GridComponentOption
 >;
 
-const EarningsChart = ({ chartRef, ...rest }: EarningsChartProps): ReactElement => {
+const FinancialChart = ({ chartRef, ...rest }: FinancialChartProps): ReactElement => {
   const theme = useTheme();
-  const option: EarningsChartOptions = useMemo(
+  const option: FinancialChartOptions = useMemo(
     () => ({
       series: [
         {
@@ -87,4 +87,4 @@ const EarningsChart = ({ chartRef, ...rest }: EarningsChartProps): ReactElement 
   return <ReactEChart ref={chartRef} option={option} echarts={echarts} {...rest} mx="auto" />;
 };
 
-export default EarningsChart;
+export default FinancialChart;

@@ -1,10 +1,10 @@
 import { Box, Paper, Typography } from '@mui/material';
-import EarningsChart from './EarningsChart';
+import FinancialChart from './FinancialChart';
 import { ReactElement, useEffect, useRef } from 'react';
 import EChartsReactCore from 'echarts-for-react/lib/core';
 import { currencyFormat } from 'helpers/format-functions';
 
-const Earnings = (): ReactElement => {
+const Financial = (): ReactElement => {
   const chartRef = useRef<EChartsReactCore | null>(null);
 
   useEffect(() => {
@@ -23,7 +23,7 @@ const Earnings = (): ReactElement => {
   return (
     <Paper sx={{ p: { xs: 4, sm: 8 }, height: 1 }}>
       <Typography variant="h4" color="common.white" mb={2.5}>
-        Earnings
+        Financial Overview
       </Typography>
       <Typography variant="body1" color="text.primary" mb={4.5}>
         Total Expense
@@ -37,7 +37,7 @@ const Earnings = (): ReactElement => {
         {currencyFormat(6078.76, { useGrouping: false })}
       </Typography>
       <Typography variant="body1" color="text.primary" mb={15}>
-        Profit is 48% More than last Month
+        Savings are 15% higher than last month
       </Typography>
       <Box
         flex={1}
@@ -45,7 +45,7 @@ const Earnings = (): ReactElement => {
           position: 'relative',
         }}
       >
-        <EarningsChart
+        <FinancialChart
           chartRef={chartRef}
           sx={{
             display: 'flex',
@@ -71,4 +71,4 @@ const Earnings = (): ReactElement => {
   );
 };
 
-export default Earnings;
+export default Financial;
