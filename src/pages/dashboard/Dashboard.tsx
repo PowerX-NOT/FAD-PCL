@@ -7,7 +7,7 @@ import TodaysFinancial from 'components/sections/dashboard/todays-financial-acti
 import TopProducts from 'components/sections/dashboard/top-products/TopProducts';
 import TrendingNow from 'components/sections/dashboard/trending-now/TrendingNow';
 import Customers from 'components/sections/dashboard/customers/Customers';
-import Earnings from 'components/sections/dashboard/earnings/Earnings';
+import Financial from 'components/sections/dashboard/financial-overview/Financial';
 import Level from 'components/sections/dashboard/level/Level';
 
 const Dashboard = (): ReactElement => {
@@ -33,7 +33,7 @@ const Dashboard = (): ReactElement => {
           gridColumn={{ xs: 'span 12', md: 'span 6', xl: 'span 4' }}
           order={{ xs: 4, xl: 5, '2xl': 4 }}
         >
-          <Earnings />
+          <Financial />
         </Box>
         <Box gridColumn={{ xs: 'span 12', xl: 'span 8' }} order={{ xs: 5, xl: 4, '2xl': 5 }}>
           <VisitorInsights />
