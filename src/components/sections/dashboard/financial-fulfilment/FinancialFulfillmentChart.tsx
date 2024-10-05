@@ -10,23 +10,23 @@ import {
   TooltipComponentOption,
 } from 'echarts/components';
 
-type CustomerFulfillmentChartProps = {
+type FinancialFulfillmentChartProps = {
   chartRef: React.MutableRefObject<EChartsReactCore | null>;
   data?: any;
   sx?: SxProps;
 };
 
-type CustomerFulfillmentChartOptions = echarts.ComposeOption<
+type FinancialFulfillmentChartOptions = echarts.ComposeOption<
   LineSeriesOption | LegendComponentOption | TooltipComponentOption | GridComponentOption
 >;
 
-const CustomerFulfillmentChart = ({
+const FinancialFulfillmentChart = ({
   chartRef,
   data,
   ...rest
-}: CustomerFulfillmentChartProps): ReactElement => {
+}: FinancialFulfillmentChartProps): ReactElement => {
   const theme = useTheme();
-  const option: CustomerFulfillmentChartOptions = useMemo(
+  const option: FinancialFulfillmentChartOptions = useMemo(
     () => ({
       color: [theme.palette.secondary.main, theme.palette.primary.main],
       tooltip: {
@@ -135,4 +135,4 @@ const CustomerFulfillmentChart = ({
   return <ReactEChart ref={chartRef} option={option} echarts={echarts} {...rest} />;
 };
 
-export default CustomerFulfillmentChart;
+export default FinancialFulfillmentChart;

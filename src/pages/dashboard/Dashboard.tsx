@@ -1,7 +1,7 @@
 import { ReactElement } from 'react';
 import { Box } from '@mui/material';
 
-import CustomerFulfillment from 'components/sections/dashboard/customer-fulfilment/CustomerFulfillment';
+import FinancialFulfillment from 'components/sections/dashboard/financial-fulfilment/FinancialFulfillment';
 import VisitorInsights from 'components/sections/dashboard/visitor-insights/VisitorInsights';
 import TodaysFinancial from 'components/sections/dashboard/todays-financial-activity/TodaysFinancial';
 import TopProducts from 'components/sections/dashboard/top-products/TopProducts';
@@ -27,7 +27,7 @@ const Dashboard = (): ReactElement => {
           gridColumn={{ xs: 'span 12', md: 'span 6', xl: 'span 4' }}
           order={{ xs: 3, xl: 3, '2xl': 3 }}
         >
-          <CustomerFulfillment />
+          <FinancialFulfillment />
         </Box>
         <Box
           gridColumn={{ xs: 'span 12', md: 'span 6', xl: 'span 4' }}

@@ -1,11 +1,11 @@
 import { ReactElement, useCallback, useEffect, useRef } from 'react';
 import { Box, Button, Divider, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
 import EChartsReactCore from 'echarts-for-react/lib/core';
-import CustomerFulfillmentChart from './CustomerFulfillmentChart';
+import FinancialFulfillmentChart from './FinancialFulfillmentChart';
 import { currencyFormat } from 'helpers/format-functions';
-import { customerFulfillmentData } from 'data/chart-data/customer-fulfillment';
+import { financialFulfillmentData } from 'data/chart-data/financial-fulfillment';
 
-const CustomerFulfillment = (): ReactElement => {
+const FinancialFulfillment = (): ReactElement => {
   const theme = useTheme();
   const chartRef = useRef<EChartsReactCore | null>(null);
 
@@ -25,18 +25,18 @@ const CustomerFulfillment = (): ReactElement => {
     (chartData: number[]) => {
       return currencyFormat(chartData.reduce((prev, current) => prev + current, 0));
     },
-    [customerFulfillmentData],
+    [financialFulfillmentData],
   );
 
   return (
     <Paper sx={{ p: { xs: 4, sm: 8 }, height: 1 }}>
       <Typography variant="h4" color="common.white">
-        Customer Fulfillment
+        Financial Fulfillment
       </Typography>
-      <CustomerFulfillmentChart
+      <FinancialFulfillmentChart
         chartRef={chartRef}
         sx={{ height: '220px !important', flexGrow: 1 }}
-        data={customerFulfillmentData}
+        data={financialFulfillmentData}
       />
       <Stack
         direction="row"
@@ -86,7 +86,7 @@ const CustomerFulfillment = (): ReactElement => {
             This Month
           </Button>
           <Typography variant="body2" color="common.white">
-            {getTotalFulfillment(customerFulfillmentData['This Month'])}
+            {getTotalFulfillment(financialFulfillmentData['This Month'])}
           </Typography>
         </Stack>
         <Stack gap={1.25} alignItems="center">
@@ -120,7 +120,7 @@ const CustomerFulfillment = (): ReactElement => {
             Last Month
           </Button>
           <Typography variant="body2" color="common.white">
-            {getTotalFulfillment(customerFulfillmentData['Last Month'])}
+            {getTotalFulfillment(financialFulfillmentData['Last Month'])}
           </Typography>
         </Stack>
       </Stack>
@@ -128,4 +128,4 @@ const CustomerFulfillment = (): ReactElement => {
   );
 };
 
-export default CustomerFulfillment;
+export default FinancialFulfillment;
