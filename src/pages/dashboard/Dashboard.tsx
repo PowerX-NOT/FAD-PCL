@@ -3,7 +3,7 @@ import { Box } from '@mui/material';
 
 import CustomerFulfillment from 'components/sections/dashboard/customer-fulfilment/CustomerFulfillment';
 import VisitorInsights from 'components/sections/dashboard/visitor-insights/VisitorInsights';
-import TodaysSales from 'components/sections/dashboard/todays-sales/TodaysSales';
+import TodaysFinancial from 'components/sections/dashboard/todays-financial-activity/TodaysFinancial';
 import TopProducts from 'components/sections/dashboard/top-products/TopProducts';
 import TrendingNow from 'components/sections/dashboard/trending-now/TrendingNow';
 import Customers from 'components/sections/dashboard/customers/Customers';
@@ -15,7 +15,7 @@ const Dashboard = (): ReactElement => {
     <>
       <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap={3.5}>
         <Box gridColumn={{ xs: 'span 12', '2xl': 'span 8' }} order={{ xs: 0 }}>
-          <TodaysSales />
+          <TodaysFinancial />
         </Box>
         <Box gridColumn={{ xs: 'span 12', lg: 'span 4' }} order={{ xs: 1, '2xl': 1 }}>
           <Level />
