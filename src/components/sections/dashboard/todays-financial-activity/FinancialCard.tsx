@@ -1,25 +1,25 @@
 import { ReactElement } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import Image from 'components/base/Image';
-import { SaleItem } from 'data/sales-data';
+import { financialItem } from 'data/financial-data';
 
-const SaleCard = ({ saleItem }: { saleItem: SaleItem }): ReactElement => {
+const FinancialCard = ({ financialItem }: { financialItem: financialItem }): ReactElement => {
   return (
     <Stack gap={6} p={5} borderRadius={4} height={1} bgcolor="background.default">
-      <Image src={saleItem.icon} alt={saleItem.subtitle} width={26} height={26} />
+      <Image src={financialItem.icon} alt={financialItem.subtitle} width={26} height={26} />
       <Box>
         <Typography variant="h4" color="common.white" mb={4}>
-          {saleItem.title}
+          {financialItem.title}
         </Typography>
         <Typography variant="body1" color="text.secondary" mb={2}>
-          {saleItem.subtitle}
+          {financialItem.subtitle}
         </Typography>
-        <Typography variant="body2" color={saleItem.color} lineHeight={1.25}>
-          +{saleItem.increment}% from yesterday
+        <Typography variant="body2" color={financialItem.color} lineHeight={1.25}>
+          +{financialItem.increment}% from yesterday
         </Typography>
       </Box>
     </Stack>
   );
 };
 
-export default SaleCard;
+export default FinancialCard;
