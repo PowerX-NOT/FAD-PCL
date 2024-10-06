@@ -10,23 +10,23 @@ import {
 } from 'echarts/components';
 import { ReactElement, useMemo } from 'react';
 
-type VisitorInsightsChartProps = {
+type ExpenseInsightsChartProps = {
   chartRef: React.MutableRefObject<EChartsReactCore | null>;
   data?: any;
   sx?: SxProps;
 };
 
-type VisitorInsightsChartOptions = echarts.ComposeOption<
+type ExpenseInsightsChartOptions = echarts.ComposeOption<
   LineSeriesOption | LegendComponentOption | TooltipComponentOption | GridComponentOption
 >;
 
-const VisitorInsightsChart = ({
+const ExpenseInsightsChart = ({
   chartRef,
   data,
   ...rest
-}: VisitorInsightsChartProps): ReactElement => {
+}: ExpenseInsightsChartProps): ReactElement => {
   const theme = useTheme();
-  const option: VisitorInsightsChartOptions = useMemo(
+  const option: ExpenseInsightsChartOptions = useMemo(
     () => ({
       tooltip: {
         trigger: 'axis',
@@ -42,7 +42,7 @@ const VisitorInsightsChart = ({
       },
       legend: {
         show: false,
-        data: ['New Visitors'],
+        data: ['New Expenses'],
       },
       grid: {
         top: '5%',
@@ -109,7 +109,7 @@ const VisitorInsightsChart = ({
       series: [
         {
           id: 1,
-          name: 'New Visitors',
+          name: 'New Expenses',
           type: 'line',
           stack: 'Total',
           smooth: false,
@@ -135,7 +135,7 @@ const VisitorInsightsChart = ({
           emphasis: {
             focus: 'series',
           },
-          data: data?.['New Visitors'],
+          data: data?.['New Expenses'],
         },
       ],
     }),
@@ -144,4 +144,4 @@ const VisitorInsightsChart = ({
   return <ReactEChart ref={chartRef} echarts={echarts} option={option} {...rest} />;
 };
 
-export default VisitorInsightsChart;
+export default ExpenseInsightsChart;
