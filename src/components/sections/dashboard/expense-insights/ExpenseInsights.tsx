@@ -1,10 +1,10 @@
 import { Box, Button, Paper, Stack, Typography } from '@mui/material';
-import VisitorInsightsChart from './VisitorInsightsChart';
+import ExpenseInsightsChart from './ExpenseInsightsChart';
 import { ReactElement, useEffect, useRef } from 'react';
 import EChartsReactCore from 'echarts-for-react/lib/core';
-import { visitorInsightsData } from 'data/chart-data/visitor-insights';
+import { expenseInsightsData } from 'data/chart-data/expense-insights';
 
-const VisitorInsights = (): ReactElement => {
+const ExpenseInsights = (): ReactElement => {
   const chartRef = useRef<EChartsReactCore | null>(null);
 
   useEffect(() => {
@@ -30,7 +30,7 @@ const VisitorInsights = (): ReactElement => {
         mb={6}
       >
         <Typography variant="h4" color="common.white">
-          Visitor Insights
+          Expense Insights
         </Typography>
         <Button
           variant="text"
@@ -64,16 +64,16 @@ const VisitorInsights = (): ReactElement => {
             },
           }}
         >
-          New Visitors
+          New Expenses
         </Button>
       </Stack>
-      <VisitorInsightsChart
+      <ExpenseInsightsChart
         chartRef={chartRef}
-        data={visitorInsightsData}
+        data={expenseInsightsData}
         sx={{ height: '342px !important', flexGrow: 1 }}
       />
     </Paper>
   );
 };
 
-export default VisitorInsights;
+export default ExpenseInsights;

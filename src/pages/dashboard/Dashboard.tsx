@@ -2,7 +2,7 @@ import { ReactElement } from 'react';
 import { Box } from '@mui/material';
 
 import FinancialFulfillment from 'components/sections/dashboard/financial-fulfilment/FinancialFulfillment';
-import VisitorInsights from 'components/sections/dashboard/visitor-insights/VisitorInsights';
+import ExpenseInsights from 'components/sections/dashboard/expense-insights/ExpenseInsights';
 import TodaysFinancial from 'components/sections/dashboard/todays-financial-activity/TodaysFinancial';
 import TopProducts from 'components/sections/dashboard/top-products/TopProducts';
 import TrendingNow from 'components/sections/dashboard/trending-now/TrendingNow';
@@ -36,7 +36,7 @@ const Dashboard = (): ReactElement => {
           <Financial />
         </Box>
         <Box gridColumn={{ xs: 'span 12', xl: 'span 8' }} order={{ xs: 5, xl: 4, '2xl': 5 }}>
-          <VisitorInsights />
+          <ExpenseInsights />
         </Box>
         <Box
           gridColumn={{ xs: 'span 12', xl: 'span 8', '2xl': 'span 6' }}
