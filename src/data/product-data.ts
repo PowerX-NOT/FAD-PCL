@@ -1,35 +1,35 @@
 import { LinearProgressProps } from '@mui/material';
 
-export interface ProductItem {
+export interface ProductList {
   id?: string;
   name: string;
   color: LinearProgressProps['color'];
   sales: number;
 }
 
-export const productTableRows: ProductItem[] = [
+export const productTableRows: ProductList[] = [
   {
     id: '01',
-    name: 'Home Decore Range',
+    name: 'Tuition Fees',
     color: 'warning',
-    sales: 78,
+    sales: 85,
   },
   {
     id: '02',
-    name: 'Disney Princess Dress',
+    name: 'Housing/Accommodation',
     color: 'primary',
-    sales: 62,
+    sales: 70,
   },
   {
     id: '03',
-    name: 'Bathroom Essentials',
+    name: 'Books & Supplies',
     color: 'info',
-    sales: 51,
+    sales: 60,
   },
   {
     id: '04',
-    name: 'Apple Smartwatch',
+    name: 'Food & Groceries',
     color: 'secondary',
-    sales: 29,
+    sales: 45,
   },
 ];

@@ -4,7 +4,7 @@ import { Box } from '@mui/material';
 import FinancialFulfillment from 'components/sections/dashboard/financial-fulfilment/FinancialFulfillment';
 import ExpenseInsights from 'components/sections/dashboard/expense-insights/ExpenseInsights';
 import TodaysFinancial from 'components/sections/dashboard/todays-financial-activity/TodaysFinancial';
-import TopProducts from 'components/sections/dashboard/top-products/TopProducts';
+import TopExpense from 'components/sections/dashboard/top-expense/TopExpense';
 import TrendingNow from 'components/sections/dashboard/trending-now/TrendingNow';
 import Customers from 'components/sections/dashboard/customers/Customers';
 import Financial from 'components/sections/dashboard/financial-overview/Financial';
@@ -21,7 +21,7 @@ const Dashboard = (): ReactElement => {
           <Level />
         </Box>
         <Box gridColumn={{ xs: 'span 12', lg: 'span 8' }} order={{ xs: 2, '2xl': 2 }}>
-          <TopProducts />
+          <TopExpense />
         </Box>
         <Box
           gridColumn={{ xs: 'span 12', md: 'span 6', xl: 'span 4' }}

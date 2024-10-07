@@ -10,28 +10,28 @@ import {
   TableContainer,
 } from '@mui/material';
 import { productTableRows } from 'data/product-data';
-import ProductItemRow from './ProductItemRow';
+import ProductListRow from './ProductListRow';
 import SimpleBar from 'simplebar-react';
 
-const TopProducts = (): ReactElement => {
+const TopExpense = (): ReactElement => {
   return (
     <Paper sx={{ p: { xs: 4, sm: 8 }, height: 1 }}>
       <Typography variant="h4" color="common.white" mb={6}>
-        Top Products
+        Top Expense Categories
       </Typography>
       <TableContainer component={SimpleBar}>
         <Table sx={{ minWidth: 440 }}>
           <TableHead>
             <TableRow>
               <TableCell align="left">#</TableCell>
-              <TableCell align="left">Name</TableCell>
-              <TableCell align="left">Popularity</TableCell>
-              <TableCell align="center">Sales</TableCell>
+              <TableCell align="left">Category</TableCell>
+              <TableCell align="left">Frequency</TableCell>
+              <TableCell align="center">Amount Spent</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {productTableRows.map((product) => (
-              <ProductItemRow key={product.id} productItem={product} />
+              <ProductListRow key={product.id} productList={product} />
             ))}
           </TableBody>
         </Table>
@@ -40,4 +40,4 @@ const TopProducts = (): ReactElement => {
   );
 };
 
-export default TopProducts;
+export default TopExpense;

@@ -1,8 +1,8 @@
 import { Chip, LinearProgress, TableCell, TableRow } from '@mui/material';
-import { ProductItem } from 'data/product-data';
+import { ProductList } from 'data/product-data';
 import { ReactElement } from 'react';
 
-const ProductItemRow = ({ productItem }: { productItem: ProductItem }): ReactElement => {
+const ProductListRow = ({ productList }: { productList: ProductList }): ReactElement => {
   return (
     <TableRow>
       <TableCell
@@ -15,7 +15,7 @@ const ProductItemRow = ({ productItem }: { productItem: ProductItem }): ReactEle
           fontSize: 'body1.fontSize',
         }}
       >
-        {productItem.id}
+        {productList.id}
       </TableCell>
       <TableCell
         align="left"
@@ -23,13 +23,13 @@ const ProductItemRow = ({ productItem }: { productItem: ProductItem }): ReactEle
           whiteSpace: 'nowrap',
         }}
       >
-        {productItem.name}
+        {productList.name}
       </TableCell>
       <TableCell align="left">
         <LinearProgress
           variant="determinate"
-          color={productItem.color}
-          value={productItem.sales}
+          color={productList.color}
+          value={productList.sales}
           sx={{
             bgcolor: 'grey.900',
           }}
@@ -37,8 +37,8 @@ const ProductItemRow = ({ productItem }: { productItem: ProductItem }): ReactEle
       </TableCell>
       <TableCell align="center">
         <Chip
-          label={`${productItem.sales}%`}
-          color={productItem.color as any}
+          label={`${productList.sales}%`}
+          color={productList.color as any}
           variant="outlined"
           size="medium"
         />
@@ -47,4 +47,4 @@ const ProductItemRow = ({ productItem }: { productItem: ProductItem }): ReactEle
   );
 };
 
-export default ProductItemRow;
+export default ProductListRow;
