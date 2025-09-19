@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.android.fad.data.Transaction
 import com.android.fad.data.TransactionCategory
 import com.android.fad.data.TransactionType
+import com.android.fad.ai.AIService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,6 +14,8 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class FinanceViewModel : ViewModel() {
+    private val aiService = AIService()
+    
     private val _transactions = MutableStateFlow<List<Transaction>>(emptyList())
     val transactions: StateFlow<List<Transaction>> = _transactions.asStateFlow()
     
@@ -25,9 +28,19 @@ class FinanceViewModel : ViewModel() {
     private val _balance = MutableStateFlow(0.0)
     val balance: StateFlow<Double> = _balance.asStateFlow()
     
+    private val _aiInsight = MutableStateFlow<String?>(null)
+    val aiInsight: StateFlow<String?> = _aiInsight.asStateFlow()
+    
+    private val _budgetAdvice = MutableStateFlow<String?>(null)
+    val budgetAdvice: StateFlow<String?> = _budgetAdvice.asStateFlow()
+    
+    private val _isLoadingInsight = MutableStateFlow(false)
+    val isLoadingInsight: StateFlow<Boolean> = _isLoadingInsight.asStateFlow()
+    
     init {
         // Add some sample data
         loadSampleData()
+        generateAIInsights()
     }
     
     private fun loadSampleData() {
@@ -84,6 +97,44 @@ class FinanceViewModel : ViewModel() {
             currentTransactions.add(transaction)
             _transactions.value = currentTransactions.sortedByDescending { it.date }
             calculateTotals()
+            generateAIInsights()
+        }
+    }
+    
+    suspend fun suggestCategory(description: String, amount: Double): TransactionCategory {
+        return aiService.suggestCategory(description, amount)
+    }
+    
+    fun generateAIInsights() {
+        viewModelScope.launch {
+            _isLoadingInsight.value = true
+            try {
+                val insight = aiService.generateFinancialInsight(
+                    transactions = _transactions.value,
+                    totalIncome = _totalIncome.value,
+                    totalExpenses = _totalExpenses.value,
+                    balance = _balance.value
+                )
+                _aiInsight.value = insight
+                
+                // Generate budget advice
+                val expensesByCategory = _transactions.value
+                    .filter { it.type == TransactionType.EXPENSE }
+                    .groupBy { it.category }
+                    .mapValues { it.value.sumOf { transaction -> transaction.amount } }
+                
+                val advice = aiService.generateBudgetAdvice(
+                    monthlyIncome = _totalIncome.value,
+                    monthlyExpenses = _totalExpenses.value,
+                    expensesByCategory = expensesByCategory
+                )
+                _budgetAdvice.value = advice
+                
+            } catch (e: Exception) {
+                _aiInsight.value = "AI insights temporarily unavailable. Please check your connection."
+            } finally {
+                _isLoadingInsight.value = false
+            }
         }
     }
     

@@ -15,6 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.fad.ui.components.FinancialCard
 import com.android.fad.ui.components.TransactionItem
+import com.android.fad.ui.components.AIInsightCard
+import com.android.fad.ui.components.BudgetAdviceCard
 import com.android.fad.viewmodel.FinanceViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,6 +30,9 @@ fun HomeScreen(
     val totalExpenses by viewModel.totalExpenses.collectAsState()
     val balance by viewModel.balance.collectAsState()
     val transactions by viewModel.transactions.collectAsState()
+    val aiInsight by viewModel.aiInsight.collectAsState()
+    val budgetAdvice by viewModel.budgetAdvice.collectAsState()
+    val isLoadingInsight by viewModel.isLoadingInsight.collectAsState()
     
     Scaffold(
         topBar = {
@@ -61,6 +66,15 @@ fun HomeScreen(
         ) {
             item {
                 Spacer(modifier = Modifier.height(8.dp))
+            }
+            
+            // AI Insight Card
+            item {
+                AIInsightCard(
+                    insight = aiInsight,
+                    isLoading = isLoadingInsight,
+                    onRefresh = { viewModel.generateAIInsights() }
+                )
             }
             
             // Financial Overview Cards
@@ -99,6 +113,11 @@ fun HomeScreen(
                     amount = balance,
                     color = if (balance >= 0) Color(0xFF2196F3) else Color(0xFFFF9800)
                 )
+            }
+            
+            // Budget Advice Card
+            item {
+                BudgetAdviceCard(advice = budgetAdvice)
             }
             
             // Recent Transactions Section

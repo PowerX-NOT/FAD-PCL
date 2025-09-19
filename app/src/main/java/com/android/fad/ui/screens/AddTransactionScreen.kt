@@ -6,6 +6,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +21,7 @@ import com.android.fad.data.TransactionType
 import com.android.fad.viewmodel.FinanceViewModel
 import java.util.UUID
 import androidx.compose.foundation.text.KeyboardOptions
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,6 +34,9 @@ fun AddTransactionScreen(
     var selectedType by remember { mutableStateOf(TransactionType.EXPENSE) }
     var selectedCategory by remember { mutableStateOf(TransactionCategory.OTHER_EXPENSE) }
     var showCategoryDialog by remember { mutableStateOf(false) }
+    var isLoadingSuggestion by remember { mutableStateOf(false) }
+    
+    val scope = rememberCoroutineScope()
     
     // Update category when type changes
     LaunchedEffect(selectedType) {
@@ -86,7 +91,51 @@ fun AddTransactionScreen(
                 onValueChange = { description = it },
                 label = { Text("Description") },
                 modifier = Modifier.fillMaxWidth()
+                trailingIcon = {
+                    if (description.isNotBlank() && amount.isNotBlank() && selectedType == TransactionType.EXPENSE) {
+                        IconButton(
+                            onClick = {
+                                scope.launch {
+                                    isLoadingSuggestion = true
+                                    try {
+                                        val suggestedCategory = viewModel.suggestCategory(
+                                            description, 
+                                            amount.toDoubleOrNull() ?: 0.0
+                                        )
+                                        selectedCategory = suggestedCategory
+                                    } finally {
+                                        isLoadingSuggestion = false
+                                    }
+                                }
+                            },
+                            enabled = !isLoadingSuggestion
+                        ) {
+                            if (isLoadingSuggestion) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.AutoAwesome,
+                                    contentDescription = "AI Suggest Category",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+                }
             )
+            
+            // AI Suggestion Helper Text
+            if (selectedType == TransactionType.EXPENSE && description.isNotBlank() && amount.isNotBlank()) {
+                Text(
+                    text = "💡 Tap the AI icon to auto-suggest category",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+            }
             
             // Transaction Type Selection
             Text(
