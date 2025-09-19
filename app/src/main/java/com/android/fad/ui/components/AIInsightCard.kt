@@ -1,6 +1,8 @@
 package com.android.fad.ui.components
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Refresh
@@ -82,12 +84,21 @@ fun AIInsightCard(
                     )
                 }
             } else {
-                Text(
-                    text = insight ?: "No insights available",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp) // Fixed height to prevent expansion
+                ) {
+                    Text(
+                        text = insight ?: "No insights available",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        lineHeight = MaterialTheme.typography.bodyMedium.lineHeight,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                    )
+                }
             }
         }
     }
