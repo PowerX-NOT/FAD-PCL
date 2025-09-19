@@ -8,6 +8,7 @@ import com.azure.ai.inference.models.ChatRequestMessage
 import com.azure.ai.inference.models.ChatRequestSystemMessage
 import com.azure.ai.inference.models.ChatRequestUserMessage
 import com.azure.core.credential.AzureKeyCredential
+import com.android.fad.BuildConfig
 import com.android.fad.data.Transaction
 import com.android.fad.data.TransactionCategory
 import kotlinx.coroutines.Dispatchers
@@ -25,14 +26,13 @@ class AIService {
             .buildClient()
     }
     
-    private val model = "openai/gpt-4o-mini"
+    private val model = "openai/gpt-5"
     
     private fun getGitHubToken(): String {
-        // In a real app, store this securely (e.g., in encrypted SharedPreferences or BuildConfig)
-        // For demo purposes, you would set this as a build config field
-        return BuildConfig.GITHUB_TOKEN.ifEmpty { 
-            "your-github-token-here" // Replace with your actual token
-        }
+        // Token is loaded from .env file (preferred) or gradle.properties (fallback)
+        // .env file is gitignored for security
+        return BuildConfig.GITHUB_TOKEN.takeIf { it.isNotBlank() } 
+            ?: throw IllegalStateException("GitHub token not configured. Please set GITHUB_TOKEN in .env file or gradle.properties")
     }
     
     suspend fun generateFinancialInsight(

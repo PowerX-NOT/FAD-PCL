@@ -90,7 +90,7 @@ fun AddTransactionScreen(
                 value = description,
                 onValueChange = { description = it },
                 label = { Text("Description") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
                 trailingIcon = {
                     if (description.isNotBlank() && amount.isNotBlank() && selectedType == TransactionType.EXPENSE) {
                         IconButton(

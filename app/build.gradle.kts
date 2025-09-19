@@ -1,8 +1,22 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
+
+// Function to load environment variables from .env file
+fun loadEnvFile(): Properties {
+    val envFile = file("../.env")
+    val props = Properties()
+    if (envFile.exists()) {
+        envFile.inputStream().use { props.load(it) }
+    }
+    return props
+}
+
+val envProps = loadEnvFile()
 
 android {
     namespace = "com.android.fad"
@@ -10,15 +24,16 @@ android {
 
     defaultConfig {
         applicationId = "com.android.fad"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
-        // Add GitHub token as build config field
-        buildConfigField("String", "GITHUB_TOKEN", "\"${project.findProperty("GITHUB_TOKEN") ?: ""}\"")
+        // Add GitHub token as build config field (prioritize .env file over gradle.properties)
+        val githubToken = envProps.getProperty("GITHUB_TOKEN") ?: project.findProperty("GITHUB_TOKEN") ?: ""
+        buildConfigField("String", "GITHUB_TOKEN", "\"$githubToken\"")
     }
 
     buildTypes {
@@ -41,6 +56,18 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+    
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/INDEX.LIST"
+            excludes += "/META-INF/DEPENDENCIES"
+            excludes += "/META-INF/io.netty.versions.properties"
+            excludes += "/META-INF/native-image/**"
+            excludes += "/META-INF/LICENSE*"
+            excludes += "/META-INF/NOTICE*"
+        }
     }
 }
 
