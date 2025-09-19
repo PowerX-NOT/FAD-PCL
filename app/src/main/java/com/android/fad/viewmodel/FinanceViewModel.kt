@@ -109,6 +109,11 @@ class FinanceViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoadingInsight.value = true
             try {
+                // First test the connection
+                println("Testing AI service connection...")
+                val testResult = aiService.testConnection()
+                println("AI Test Result: $testResult")
+                
                 val insight = aiService.generateFinancialInsight(
                     transactions = _transactions.value,
                     totalIncome = _totalIncome.value,
