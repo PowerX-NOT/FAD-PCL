@@ -87,6 +87,10 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.5")
     implementation("androidx.compose.runtime:runtime-livedata:1.5.4")
     
+    // Charts for data visualization
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    implementation("co.yml:ycharts:2.1.0")
+    
     // AI Services - GitHub Models
     implementation("com.azure:azure-ai-inference:1.0.0-beta.1")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")

@@ -39,3 +39,11 @@ val IncomeGreen = Color(0xFF4CAF50)
 val ExpenseRed = Color(0xFFF44336)
 val BalanceBlue = Color(0xFF2196F3)
 val WarningOrange = Color(0xFFFF9800)
+
+// Modern gradient colors
+val GradientStart = Color(0xFF667eea)
+val GradientEnd = Color(0xFF764ba2)
+val SuccessGradientStart = Color(0xFF11998e)
+val SuccessGradientEnd = Color(0xFF38ef7d)
+val ErrorGradientStart = Color(0xFFfd746c)
+val ErrorGradientEnd = Color(0xFFff9068)

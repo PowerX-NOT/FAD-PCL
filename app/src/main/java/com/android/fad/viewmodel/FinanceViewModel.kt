@@ -6,6 +6,7 @@ import com.android.fad.data.Transaction
 import com.android.fad.data.TransactionCategory
 import com.android.fad.data.TransactionType
 import com.android.fad.ai.AIService
+import com.android.fad.ui.components.SmartNotification
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,10 +38,23 @@ class FinanceViewModel : ViewModel() {
     private val _isLoadingInsight = MutableStateFlow(false)
     val isLoadingInsight: StateFlow<Boolean> = _isLoadingInsight.asStateFlow()
     
+    private val _spendingAnalysis = MutableStateFlow<String?>(null)
+    val spendingAnalysis: StateFlow<String?> = _spendingAnalysis.asStateFlow()
+    
+    private val _isLoadingAnalysis = MutableStateFlow(false)
+    val isLoadingAnalysis: StateFlow<Boolean> = _isLoadingAnalysis.asStateFlow()
+    
+    private val _smartNotifications = MutableStateFlow<List<SmartNotification>>(emptyList())
+    val smartNotifications: StateFlow<List<SmartNotification>> = _smartNotifications.asStateFlow()
+    
+    private val _expensesByCategory = MutableStateFlow<Map<TransactionCategory, Double>>(emptyMap())
+    val expensesByCategory: StateFlow<Map<TransactionCategory, Double>> = _expensesByCategory.asStateFlow()
+    
     init {
         // Add some sample data
         loadSampleData()
         generateAIInsights()
+        generateSpendingAnalysis()
     }
     
     private fun loadSampleData() {
@@ -98,6 +112,7 @@ class FinanceViewModel : ViewModel() {
             _transactions.value = currentTransactions.sortedByDescending { it.date }
             calculateTotals()
             generateAIInsights()
+            generateSpendingAnalysis()
         }
     }
     
@@ -135,12 +150,52 @@ class FinanceViewModel : ViewModel() {
                 )
                 _budgetAdvice.value = advice
                 
+                // Generate smart notifications
+                val notifications = aiService.generateSmartNotifications(
+                    transactions = _transactions.value,
+                    monthlyIncome = _totalIncome.value,
+                    monthlyExpenses = _totalExpenses.value,
+                    expensesByCategory = expensesByCategory
+                )
+                _smartNotifications.value = notifications
+                
             } catch (e: Exception) {
                 _aiInsight.value = "AI insights temporarily unavailable. Please check your connection."
             } finally {
                 _isLoadingInsight.value = false
             }
         }
+    }
+    
+    fun generateSpendingAnalysis() {
+        viewModelScope.launch {
+            _isLoadingAnalysis.value = true
+            try {
+                val expensesByCategory = _transactions.value
+                    .filter { it.type == TransactionType.EXPENSE }
+                    .groupBy { it.category }
+                    .mapValues { it.value.sumOf { transaction -> transaction.amount } }
+                
+                _expensesByCategory.value = expensesByCategory
+                
+                val analysis = aiService.generateSpendingAnalysis(
+                    transactions = _transactions.value.filter { it.type == TransactionType.EXPENSE },
+                    expensesByCategory = expensesByCategory
+                )
+                _spendingAnalysis.value = analysis
+                
+            } catch (e: Exception) {
+                _spendingAnalysis.value = "Spending analysis temporarily unavailable."
+            } finally {
+                _isLoadingAnalysis.value = false
+            }
+        }
+    }
+    
+    fun dismissNotification(notificationId: String) {
+        val currentNotifications = _smartNotifications.value.toMutableList()
+        currentNotifications.removeAll { it.id == notificationId }
+        _smartNotifications.value = currentNotifications
     }
     
     private fun calculateTotals() {
@@ -151,6 +206,12 @@ class FinanceViewModel : ViewModel() {
         _totalIncome.value = income
         _totalExpenses.value = expenses
         _balance.value = income - expenses
+        
+        // Update expenses by category
+        _expensesByCategory.value = transactions
+            .filter { it.type == TransactionType.EXPENSE }
+            .groupBy { it.category }
+            .mapValues { it.value.sumOf { transaction -> transaction.amount } }
     }
     
     fun getTransactionsByCategory(category: TransactionCategory): List<Transaction> {

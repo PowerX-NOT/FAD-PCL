@@ -11,6 +11,9 @@ import com.azure.core.credential.AzureKeyCredential
 import com.android.fad.BuildConfig
 import com.android.fad.data.Transaction
 import com.android.fad.data.TransactionCategory
+import com.android.fad.ui.components.SmartNotification
+import com.android.fad.ui.components.NotificationType
+import com.android.fad.ui.components.NotificationPriority
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.*
@@ -163,6 +166,99 @@ class AIService {
         }
     }
     
+    suspend fun generateSpendingAnalysis(
+        transactions: List<Transaction>,
+        expensesByCategory: Map<TransactionCategory, Double>
+    ): String = withContext(Dispatchers.IO) {
+        try {
+            val topCategories = expensesByCategory.entries.sortedByDescending { it.value }.take(3)
+                .joinToString(", ") { "${it.key.displayName}: ₹${String.format("%.0f", it.value)}" }
+            
+            val totalSpent = expensesByCategory.values.sum()
+            val avgTransactionAmount = if (transactions.isNotEmpty()) {
+                transactions.filter { it.type == com.android.fad.data.TransactionType.EXPENSE }
+                    .map { it.amount }.average()
+            } else 0.0
+            
+            val prompt = "Spending Pattern Analysis: Total spent: ₹$totalSpent, Average transaction: ₹${String.format("%.2f", avgTransactionAmount)}, Top categories: $topCategories. Provide insights on spending patterns, identify potential areas for optimization, and suggest 2-3 actionable improvements for better financial health."
+            
+            val messages = listOf(
+                ChatRequestSystemMessage("You are a financial analyst AI. Analyze spending patterns and provide actionable insights. Keep responses concise (4-5 sentences) and focus on practical recommendations."),
+                ChatRequestUserMessage(prompt)
+            )
+            
+            val options = ChatCompletionsOptions(messages)
+            options.model = model
+            options.maxTokens = 200
+            options.temperature = 0.6
+            
+            val completions = client.complete(options)
+            completions.choices.firstOrNull()?.message?.content ?: "Analysis temporarily unavailable."
+            
+        } catch (e: Exception) {
+            println("AI Spending Analysis Error: ${e.message}")
+            e.printStackTrace()
+            generateFallbackSpendingAnalysis(expensesByCategory)
+        }
+    }
+    
+    suspend fun generateSmartNotifications(
+        transactions: List<Transaction>,
+        monthlyIncome: Double,
+        monthlyExpenses: Double,
+        expensesByCategory: Map<TransactionCategory, Double>
+    ): List<SmartNotification> = withContext(Dispatchers.IO) {
+        val notifications = mutableListOf<SmartNotification>()
+        
+        try {
+            // Budget warning if expenses > 80% of income
+            val spendingRatio = if (monthlyIncome > 0) monthlyExpenses / monthlyIncome else 0.0
+            if (spendingRatio > 0.8) {
+                notifications.add(
+                    SmartNotification(
+                        id = "budget_warning_${System.currentTimeMillis()}",
+                        title = "Budget Alert",
+                        message = "You've spent ${(spendingRatio * 100).toInt()}% of your income this month. Consider reviewing your expenses.",
+                        type = NotificationType.BUDGET_WARNING,
+                        priority = NotificationPriority.HIGH
+                    )
+                )
+            }
+            
+            // High spending category alert
+            val topCategory = expensesByCategory.maxByOrNull { it.value }
+            if (topCategory != null && topCategory.value > monthlyIncome * 0.3) {
+                notifications.add(
+                    SmartNotification(
+                        id = "spending_alert_${System.currentTimeMillis()}",
+                        title = "High Spending Alert",
+                        message = "${topCategory.key.displayName} accounts for ${((topCategory.value / monthlyExpenses) * 100).toInt()}% of your expenses. Consider optimizing this category.",
+                        type = NotificationType.SPENDING_ALERT,
+                        priority = NotificationPriority.MEDIUM
+                    )
+                )
+            }
+            
+            // Savings tip if spending ratio is good
+            if (spendingRatio < 0.7) {
+                notifications.add(
+                    SmartNotification(
+                        id = "savings_tip_${System.currentTimeMillis()}",
+                        title = "Great Job!",
+                        message = "You're saving ${((1 - spendingRatio) * 100).toInt()}% of your income. Consider investing some of these savings for long-term growth.",
+                        type = NotificationType.SAVINGS_TIP,
+                        priority = NotificationPriority.LOW
+                    )
+                )
+            }
+            
+        } catch (e: Exception) {
+            println("Smart Notifications Error: ${e.message}")
+        }
+        
+        notifications
+    }
+    
     private fun buildFinancialInsightPrompt(
         transactions: List<Transaction>,
         totalIncome: Double,
@@ -214,6 +310,18 @@ class AIService {
             savingsRate < 10 -> "Your savings rate is low. Try the 50/30/20 rule: 50% needs, 30% wants, 20% savings. Look for areas to cut back on discretionary spending."
             savingsRate < 20 -> "Good progress! You're saving $savingsRate% of your income. Consider increasing this to 20% by reducing entertainment or dining out expenses."
             else -> "Excellent savings rate of $savingsRate%! You're doing great. Consider investing some of your savings for long-term growth."
+        }
+    }
+    
+    private fun generateFallbackSpendingAnalysis(expensesByCategory: Map<TransactionCategory, Double>): String {
+        val topCategory = expensesByCategory.maxByOrNull { it.value }
+        val totalSpent = expensesByCategory.values.sum()
+        
+        return if (topCategory != null) {
+            val percentage = ((topCategory.value / totalSpent) * 100).toInt()
+            "Your highest spending category is ${topCategory.key.displayName} at $percentage% of total expenses (₹${String.format("%.0f", topCategory.value)}). Consider setting a budget limit for this category and look for alternatives to reduce costs. Track your daily expenses to identify patterns and opportunities for savings."
+        } else {
+            "Start tracking your expenses to get personalized spending insights. Focus on categorizing your transactions to understand where your money goes each month."
         }
     }
 }
