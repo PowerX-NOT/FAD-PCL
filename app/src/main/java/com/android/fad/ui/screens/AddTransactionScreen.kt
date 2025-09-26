@@ -2,7 +2,6 @@ package com.android.fad.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -32,18 +31,39 @@ fun AddTransactionScreen(
     var amount by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedType by remember { mutableStateOf(TransactionType.EXPENSE) }
-    var selectedCategory by remember { mutableStateOf(TransactionCategory.OTHER_EXPENSE) }
-    var showCategoryDialog by remember { mutableStateOf(false) }
+    var suggestedCategory by remember { mutableStateOf<TransactionCategory?>(null) }
     var isLoadingSuggestion by remember { mutableStateOf(false) }
+    var categoryError by remember { mutableStateOf<String?>(null) }
     
     val scope = rememberCoroutineScope()
     
-    // Update category when type changes
-    LaunchedEffect(selectedType) {
-        selectedCategory = if (selectedType == TransactionType.INCOME) {
-            TransactionCategory.OTHER_INCOME
-        } else {
-            TransactionCategory.OTHER_EXPENSE
+    // Auto-suggest category when description and amount change
+    LaunchedEffect(description, amount, selectedType) {
+        if (description.isNotBlank() && amount.isNotBlank() && selectedType == TransactionType.EXPENSE) {
+            isLoadingSuggestion = true
+            categoryError = null
+            try {
+                val category = viewModel.suggestCategory(
+                    description, 
+                    amount.toDoubleOrNull() ?: 0.0
+                )
+                suggestedCategory = category
+            } catch (e: Exception) {
+                categoryError = "Failed to get AI suggestion"
+                suggestedCategory = TransactionCategory.OTHER_EXPENSE
+            } finally {
+                isLoadingSuggestion = false
+            }
+        } else if (selectedType == TransactionType.INCOME) {
+            // For income, use simple keyword matching or default
+            suggestedCategory = when {
+                description.lowercase().contains("salary") -> TransactionCategory.SALARY
+                description.lowercase().contains("freelance") || 
+                description.lowercase().contains("project") -> TransactionCategory.FREELANCE
+                description.lowercase().contains("investment") || 
+                description.lowercase().contains("dividend") -> TransactionCategory.INVESTMENT
+                else -> TransactionCategory.OTHER_INCOME
+            }
         }
     }
     
@@ -51,10 +71,17 @@ fun AddTransactionScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = "Add Transaction",
-                        fontWeight = FontWeight.Bold
-                    )
+                    Column {
+                        Text(
+                            text = "Add Transaction",
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "AI will auto-categorize",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
@@ -82,7 +109,10 @@ fun AddTransactionScreen(
                 label = { Text("Amount") },
                 prefix = { Text("₹") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                supportingText = {
+                    Text("Enter the transaction amount")
+                }
             )
             
             // Description Input
@@ -91,51 +121,25 @@ fun AddTransactionScreen(
                 onValueChange = { description = it },
                 label = { Text("Description") },
                 modifier = Modifier.fillMaxWidth(),
+                supportingText = {
+                    Text("Describe your transaction (AI will categorize automatically)")
+                },
                 trailingIcon = {
-                    if (description.isNotBlank() && amount.isNotBlank() && selectedType == TransactionType.EXPENSE) {
-                        IconButton(
-                            onClick = {
-                                scope.launch {
-                                    isLoadingSuggestion = true
-                                    try {
-                                        val suggestedCategory = viewModel.suggestCategory(
-                                            description, 
-                                            amount.toDoubleOrNull() ?: 0.0
-                                        )
-                                        selectedCategory = suggestedCategory
-                                    } finally {
-                                        isLoadingSuggestion = false
-                                    }
-                                }
-                            },
-                            enabled = !isLoadingSuggestion
-                        ) {
-                            if (isLoadingSuggestion) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(16.dp),
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Default.AutoAwesome,
-                                    contentDescription = "AI Suggest Category",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
+                    if (isLoadingSuggestion) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    } else if (suggestedCategory != null) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = "AI Categorized",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             )
-            
-            // AI Suggestion Helper Text
-            if (selectedType == TransactionType.EXPENSE && description.isNotBlank() && amount.isNotBlank()) {
-                Text(
-                    text = "💡 Tap the AI icon to auto-suggest category",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 4.dp)
-                )
-            }
             
             // Transaction Type Selection
             Text(
@@ -158,18 +162,120 @@ fun AddTransactionScreen(
                 }
             }
             
-            // Category Selection
-            Text(
-                text = "Category",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium
-            )
+            // AI Category Suggestion Display
+            if (suggestedCategory != null || isLoadingSuggestion || categoryError != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AutoAwesome,
+                                contentDescription = "AI Category",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "AI Category Suggestion",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        when {
+                            isLoadingSuggestion -> {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(16.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "AI is analyzing your transaction...",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                            categoryError != null -> {
+                                Text(
+                                    text = "⚠️ $categoryError. Using default category.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                            suggestedCategory != null -> {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column {
+                                        Text(
+                                            text = suggestedCategory!!.displayName,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = suggestedCategory!!.color
+                                        )
+                                        Text(
+                                            text = "Automatically selected by AI",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    
+                                    // Category color indicator
+                                    Box(
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .background(
+                                                suggestedCategory!!.color,
+                                                shape = androidx.compose.foundation.shape.CircleShape
+                                            )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             
-            OutlinedButton(
-                onClick = { showCategoryDialog = true },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(selectedCategory.displayName)
+            // Help text
+            if (description.isBlank() && amount.isBlank()) {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text(
+                            text = "💡 How AI Categorization Works",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Simply enter your transaction description and amount. Our AI will automatically analyze and categorize your transaction based on keywords, context, and spending patterns.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
             
             Spacer(modifier = Modifier.weight(1f))
@@ -177,11 +283,11 @@ fun AddTransactionScreen(
             // Add Transaction Button
             Button(
                 onClick = {
-                    if (amount.isNotBlank() && description.isNotBlank()) {
+                    if (amount.isNotBlank() && description.isNotBlank() && suggestedCategory != null) {
                         val transaction = Transaction(
                             id = UUID.randomUUID().toString(),
                             amount = amount.toDoubleOrNull() ?: 0.0,
-                            category = selectedCategory,
+                            category = suggestedCategory!!,
                             type = selectedType,
                             description = description
                         )
@@ -190,72 +296,25 @@ fun AddTransactionScreen(
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = amount.isNotBlank() && description.isNotBlank()
+                enabled = amount.isNotBlank() && 
+                         description.isNotBlank() && 
+                         suggestedCategory != null && 
+                         !isLoadingSuggestion
             ) {
-                Text("Add Transaction")
+                if (isLoadingSuggestion) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("AI Categorizing...")
+                } else {
+                    Text("Add Transaction")
+                }
             }
+            
+            Spacer(modifier = Modifier.height(16.dp))
         }
-    }
-    
-    // Category Selection Dialog
-    if (showCategoryDialog) {
-        AlertDialog(
-            onDismissRequest = { showCategoryDialog = false },
-            title = { Text("Select Category") },
-            text = {
-                Column {
-                    val categories = if (selectedType == TransactionType.INCOME) {
-                        listOf(
-                            TransactionCategory.SALARY,
-                            TransactionCategory.FREELANCE,
-                            TransactionCategory.INVESTMENT,
-                            TransactionCategory.OTHER_INCOME
-                        )
-                    } else {
-                        listOf(
-                            TransactionCategory.FOOD,
-                            TransactionCategory.TRANSPORT,
-                            TransactionCategory.ENTERTAINMENT,
-                            TransactionCategory.SHOPPING,
-                            TransactionCategory.BILLS,
-                            TransactionCategory.EDUCATION,
-                            TransactionCategory.HEALTH,
-                            TransactionCategory.OTHER_EXPENSE
-                        )
-                    }
-                    
-                    categories.forEach { category ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .selectable(
-                                    selected = selectedCategory == category,
-                                    onClick = {
-                                        selectedCategory = category
-                                        showCategoryDialog = false
-                                    }
-                                )
-                                .padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = selectedCategory == category,
-                                onClick = {
-                                    selectedCategory = category
-                                    showCategoryDialog = false
-                                }
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(category.displayName)
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showCategoryDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
     }
 }

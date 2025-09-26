@@ -97,20 +97,38 @@ class AIService {
     
     suspend fun suggestCategory(description: String, amount: Double): TransactionCategory = withContext(Dispatchers.IO) {
         try {
-            val prompt = "Based on this transaction description: \"$description\" (Amount: ₹$amount). Suggest the most appropriate category from these options: FOOD, TRANSPORT, ENTERTAINMENT, SHOPPING, BILLS, EDUCATION, HEALTH, OTHER_EXPENSE. Respond with only the category name, nothing else."
+            val prompt = """
+                Analyze this transaction and categorize it:
+                Description: "$description"
+                Amount: ₹$amount
+                
+                Choose the MOST appropriate category from these options:
+                - FOOD: Food, dining, restaurants, groceries, snacks
+                - TRANSPORT: Bus, taxi, uber, train, fuel, parking
+                - ENTERTAINMENT: Movies, games, concerts, streaming, fun activities
+                - SHOPPING: Clothes, electronics, general purchases, online shopping
+                - BILLS: Electricity, water, phone, internet, rent, utilities
+                - EDUCATION: Books, courses, tuition, school supplies, learning
+                - HEALTH: Medicine, doctor, hospital, pharmacy, medical
+                - OTHER_EXPENSE: Anything that doesn't fit above categories
+                
+                Respond with ONLY the category name (e.g., "FOOD"), nothing else.
+            """.trimIndent()
             
             val messages = listOf(
-                ChatRequestSystemMessage("You are a transaction categorization assistant. Respond with only the category name."),
+                ChatRequestSystemMessage("You are an expert financial transaction categorization AI. Analyze the transaction context and respond with only the most appropriate category name."),
                 ChatRequestUserMessage(prompt)
             )
             
             val options = ChatCompletionsOptions(messages)
             options.model = model
-            options.maxTokens = 20
-            options.temperature = 0.3
+            options.maxTokens = 10
+            options.temperature = 0.1
             
             val completions = client.complete(options)
             val response = completions.choices.firstOrNull()?.message?.content?.trim()?.uppercase()
+            
+            println("AI Category Response: '$response' for description: '$description'")
             
             // Map AI response to our categories
             when (response) {
@@ -126,7 +144,7 @@ class AIService {
             
         } catch (e: Exception) {
             // Log the actual error for debugging
-            println("AI Category Suggestion Error: ${e.message}")
+            println("AI Category Suggestion Error for '$description': ${e.message}")
             e.printStackTrace()
             // Fallback to simple keyword matching
             suggestCategoryFallback(description)
@@ -284,22 +302,60 @@ class AIService {
     
     private fun suggestCategoryFallback(description: String): TransactionCategory {
         val desc = description.lowercase()
+        println("Using fallback categorization for: '$description'")
         return when {
-            desc.contains("food") || desc.contains("restaurant") || desc.contains("cafe") || 
-            desc.contains("lunch") || desc.contains("dinner") || desc.contains("breakfast") -> 
+            // Food related keywords
+            desc.contains("food") || desc.contains("restaurant") || desc.contains("cafe") ||
+            desc.contains("lunch") || desc.contains("dinner") || desc.contains("breakfast") ||
+            desc.contains("snack") || desc.contains("grocery") || desc.contains("meal") ||
+            desc.contains("pizza") || desc.contains("burger") || desc.contains("coffee") ||
+            desc.contains("tea") || desc.contains("canteen") || desc.contains("cafeteria") ->
                 TransactionCategory.FOOD
-            desc.contains("bus") || desc.contains("train") || desc.contains("uber") || 
-            desc.contains("taxi") || desc.contains("transport") -> 
+                
+            // Transport related keywords
+            desc.contains("bus") || desc.contains("train") || desc.contains("uber") ||
+            desc.contains("taxi") || desc.contains("transport") || desc.contains("fuel") ||
+            desc.contains("petrol") || desc.contains("diesel") || desc.contains("parking") ||
+            desc.contains("metro") || desc.contains("auto") || desc.contains("rickshaw") ||
+            desc.contains("cab") || desc.contains("ola") ->
                 TransactionCategory.TRANSPORT
-            desc.contains("movie") || desc.contains("game") || desc.contains("entertainment") -> 
+                
+            // Entertainment related keywords
+            desc.contains("movie") || desc.contains("game") || desc.contains("entertainment") ||
+            desc.contains("cinema") || desc.contains("theater") || desc.contains("concert") ||
+            desc.contains("netflix") || desc.contains("spotify") || desc.contains("youtube") ||
+            desc.contains("gaming") || desc.contains("party") || desc.contains("club") ->
                 TransactionCategory.ENTERTAINMENT
-            desc.contains("book") || desc.contains("course") || desc.contains("education") || 
-            desc.contains("tuition") -> 
+                
+            // Education related keywords
+            desc.contains("book") || desc.contains("course") || desc.contains("education") ||
+            desc.contains("tuition") || desc.contains("school") || desc.contains("college") ||
+            desc.contains("university") || desc.contains("study") || desc.contains("exam") ||
+            desc.contains("textbook") || desc.contains("notebook") || desc.contains("pen") ||
+            desc.contains("pencil") || desc.contains("stationery") ->
                 TransactionCategory.EDUCATION
-            desc.contains("medicine") || desc.contains("doctor") || desc.contains("health") -> 
+                
+            // Health related keywords
+            desc.contains("medicine") || desc.contains("doctor") || desc.contains("health") ||
+            desc.contains("hospital") || desc.contains("pharmacy") || desc.contains("medical") ||
+            desc.contains("clinic") || desc.contains("checkup") || desc.contains("treatment") ||
+            desc.contains("tablet") || desc.contains("syrup") || desc.contains("injection") ->
                 TransactionCategory.HEALTH
-            desc.contains("electricity") || desc.contains("water") || desc.contains("bill") -> 
+                
+            // Bills related keywords
+            desc.contains("electricity") || desc.contains("water") || desc.contains("bill") ||
+            desc.contains("phone") || desc.contains("internet") || desc.contains("wifi") ||
+            desc.contains("rent") || desc.contains("utility") || desc.contains("recharge") ||
+            desc.contains("mobile") || desc.contains("broadband") ->
                 TransactionCategory.BILLS
+                
+            // Shopping related keywords
+            desc.contains("shopping") || desc.contains("clothes") || desc.contains("shirt") ||
+            desc.contains("shoes") || desc.contains("electronics") || desc.contains("amazon") ||
+            desc.contains("flipkart") || desc.contains("online") || desc.contains("purchase") ||
+            desc.contains("buy") || desc.contains("store") || desc.contains("mall") ->
+                TransactionCategory.SHOPPING
+                
             else -> TransactionCategory.OTHER_EXPENSE
         }
     }
