@@ -39,30 +39,30 @@ fun AddTransactionScreen(
     
     // Auto-suggest category when description and amount change
     LaunchedEffect(description, amount, selectedType) {
-        if (description.isNotBlank() && amount.isNotBlank() && selectedType == TransactionType.EXPENSE) {
+        if (description.isNotBlank() && amount.isNotBlank()) {
             isLoadingSuggestion = true
             categoryError = null
             try {
-                val category = viewModel.suggestCategory(
-                    description, 
-                    amount.toDoubleOrNull() ?: 0.0
-                )
-                suggestedCategory = category
+                if (selectedType == TransactionType.EXPENSE) {
+                    // Use AI for expense categorization
+                    val category = viewModel.suggestCategory(
+                        description, 
+                        amount.toDoubleOrNull() ?: 0.0
+                    )
+                    suggestedCategory = category
+                } else {
+                    // For income, use enhanced keyword matching
+                    suggestedCategory = categorizeIncome(description)
+                }
             } catch (e: Exception) {
                 categoryError = "Failed to get AI suggestion"
-                suggestedCategory = TransactionCategory.OTHER_EXPENSE
+                suggestedCategory = if (selectedType == TransactionType.EXPENSE) {
+                    TransactionCategory.OTHER_EXPENSE
+                } else {
+                    TransactionCategory.OTHER_INCOME
+                }
             } finally {
                 isLoadingSuggestion = false
-            }
-        } else if (selectedType == TransactionType.INCOME) {
-            // For income, use simple keyword matching or default
-            suggestedCategory = when {
-                description.lowercase().contains("salary") -> TransactionCategory.SALARY
-                description.lowercase().contains("freelance") || 
-                description.lowercase().contains("project") -> TransactionCategory.FREELANCE
-                description.lowercase().contains("investment") || 
-                description.lowercase().contains("dividend") -> TransactionCategory.INVESTMENT
-                else -> TransactionCategory.OTHER_INCOME
             }
         }
     }
@@ -316,5 +316,23 @@ fun AddTransactionScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
         }
+    }
+}
+
+private fun categorizeIncome(description: String): TransactionCategory {
+    val desc = description.lowercase()
+    return when {
+        desc.contains("salary") || desc.contains("wage") || desc.contains("payroll") ||
+        desc.contains("monthly") && desc.contains("pay") -> TransactionCategory.SALARY
+        
+        desc.contains("freelance") || desc.contains("project") || desc.contains("contract") ||
+        desc.contains("gig") || desc.contains("client") || desc.contains("consulting") ||
+        desc.contains("design") || desc.contains("development") -> TransactionCategory.FREELANCE
+        
+        desc.contains("investment") || desc.contains("dividend") || desc.contains("interest") ||
+        desc.contains("stock") || desc.contains("mutual") || desc.contains("fund") ||
+        desc.contains("return") || desc.contains("profit") -> TransactionCategory.INVESTMENT
+        
+        else -> TransactionCategory.OTHER_INCOME
     }
 }

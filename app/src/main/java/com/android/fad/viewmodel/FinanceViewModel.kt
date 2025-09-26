@@ -126,8 +126,12 @@ class FinanceViewModel : ViewModel() {
             try {
                 // First test the connection
                 println("Testing AI service connection...")
-                val testResult = aiService.testConnection()
-                println("AI Test Result: $testResult")
+                try {
+                    val testResult = aiService.testConnection()
+                    println("AI Test Result: $testResult")
+                } catch (e: Exception) {
+                    println("AI Connection test failed, but continuing with insights generation...")
+                }
                 
                 val insight = aiService.generateFinancialInsight(
                     transactions = _transactions.value,
