@@ -141,7 +141,7 @@ fun HomeScreen(
                         modifier = Modifier.weight(1f)
                     )
                 }
-            )
+            }
             
             item {
                 ModernFinancialCard(

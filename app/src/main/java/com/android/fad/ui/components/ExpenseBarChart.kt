@@ -3,6 +3,8 @@ package com.android.fad.ui.components
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,6 +15,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -122,8 +125,7 @@ fun ExpenseBarChart(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                items(sortedExpenses.size) { index ->
-                    val (category, amount) = sortedExpenses[index]
+                items(sortedExpenses) { (category, amount) ->
                     LegendItem(
                         category = category,
                         amount = amount
@@ -202,10 +204,4 @@ private fun DrawScope.drawRoundedBar(
         size = Size(size.width, size.height * 0.3f),
         cornerRadius = androidx.compose.ui.geometry.CornerRadius(cornerRadius, cornerRadius)
     )
-}
-
-private fun items(size: Int, content: @Composable (Int) -> Unit) {
-    repeat(size) { index ->
-        content(index)
-    }
 }
